@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Trading Bitacora Goats
 
-## Getting Started
+A private trading journal built with **Next.js**, **React**, **TypeScript**, **Tailwind CSS**, and **Supabase Auth**.
 
-First, run the development server:
+## Stack
+
+| Layer | Tech |
+|--------|------|
+| App | Next.js (App Router) on Vercel |
+| Auth | Supabase Auth (email + password) |
+| Database | Supabase Postgres + Row Level Security |
+| Files | Supabase Storage (screenshots + PDFs) |
+
+## Setup
+
+### 1. Install
+
+```bash
+npm install
+cp .env.example .env.local
+```
+
+### 2. Create a Supabase project
+
+1. [supabase.com](https://supabase.com) → New project
+2. **Authentication → Providers → Email** — enable Email (optionally disable “Confirm email” while developing)
+3. **SQL Editor** — run the full script in [`supabase/schema.sql`](./supabase/schema.sql)
+4. **Project Settings → API** — copy URL + `anon` key into `.env.local`:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+```
+
+### 3. Run locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) → you’ll be redirected to **/login**. Create an account at **/register**.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`npm run dev` uses **webpack** (more stable / lower memory). If you want Turbopack instead: `npm run dev:turbo`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+On signup, a trigger creates your `profiles` row and a default **Main Account**.
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Push to GitHub and import in Vercel
+2. Add the same two `NEXT_PUBLIC_*` env vars
+3. In Supabase → Authentication → URL Configuration, add your Vercel URL to **Site URL** and **Redirect URLs**
+4. Deploy
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Multi-account data model
+
+```
+auth.users (1)
+     ├── profiles (1)  → active_account_id (which account is selected)
+     └── accounts (N)  → balance, currency, backtest settings
+              ├── trades (N) → trade_documents (0..1)
+              └── backtest_trades (N)
+
+lessons → per user (shared across that user's accounts)
+```
+
+| Table | Scope | Purpose |
+|--------|--------|---------|
+| `profiles` | 1 per user | Display name + currently active account |
+| `accounts` | N per user | Each funded/personal account + its settings |
+| `trades` | Per account | Live journal rows |
+| `trade_documents` | Per trade | TipTap HTML + PDF path |
+| `backtest_trades` | Per account | Replay / backtest logs |
+| `lessons` | Per user | Lessons shared across accounts |
+
+Composite FKs `(account_id, user_id) → accounts(id, user_id)` make it impossible for a trade to point at another user's account. Deleting an account cascades its trades, docs, and backtests.
+
+Storage buckets: `trade-images`, `backtest-images`, `trade-documents`  
+Paths: `{user_id}/{account_id}/{filename}`
