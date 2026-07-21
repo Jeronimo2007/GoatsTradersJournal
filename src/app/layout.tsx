@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   title: "Goats Traders Journal",
   description:
     "Un diario de trading privado para el seguimiento de estadísticas cuantitativas, contexto técnico y psicología del trading.",
+  icons: {
+    icon: "/image.png",
+    apple: "/image.png",
+  },
 };
 
 export default function RootLayout({
