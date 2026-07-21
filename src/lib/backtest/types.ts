@@ -80,17 +80,8 @@ export const BT_SESSIONS: BtSession[] = ["NY", "Tokyo"];
 export const BT_DIRECTIONS: BtDirection[] = ["long", "short"];
 export const BT_OUTCOMES: BtOutcome[] = ["win", "loss", "be"];
 
-/** Quick-select setup tags geared towards ICT / smart-money replay work. */
-export const BT_SETUP_PRESETS = [
-  "MSS / ChoCh",
-  "Order Block Retest",
-  "Liquidity Sweep",
-  "Fair Value Gap",
-  "Breaker Block",
-  "Turtle Soup",
-  "Trendline Liquidity",
-  "Asian Range Break",
-];
+/** Quick-select setup tags. */
+export const BT_SETUP_PRESETS = ["Sistema Goat Trader"];
 
 export const BT_ASSET_PRESETS = [
   "XAUUSD",

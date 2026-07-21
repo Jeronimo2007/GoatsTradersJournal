@@ -90,18 +90,7 @@ export const LESSON_MAX_LENGTH = 500;
 
 export const SESSION_PRESETS = ["New York", "Tokyo"];
 
-export const SETUP_PRESETS = [
-  "Market Structure Shift",
-  "Support/Resistance Retest",
-  "Fair Value Gap Fill",
-  "Liquidity Sweep",
-  "Order Block",
-  "Breakout",
-  "Trend Continuation",
-  "Reversal",
-  "Supply/Demand Zone",
-  "Range Play",
-];
+export const SETUP_PRESETS = ["Sistema Goat Trader"];
 
 export const ASSET_PRESETS = [
   "XAUUSD",

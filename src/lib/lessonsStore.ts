@@ -92,10 +92,19 @@ async function loadProfiles(
 
 export async function getLessons(): Promise<Lesson[]> {
   const { supabase, user } = await requireUser();
-  const { data, error } = await supabase.from("lessons").select("*");
-  if (error) throw new Error(`Failed to load lessons: ${error.message}`);
 
-  const rows = (data ?? []) as LessonRow[];
+  // Prefer the shared-feed RPC (bypasses sticky per-user SELECT policies).
+  // Fall back to a plain select if the migration has not been applied yet.
+  const rpc = await supabase.rpc("list_lessons");
+  let rows: LessonRow[];
+  if (!rpc.error && rpc.data) {
+    rows = rpc.data as LessonRow[];
+  } else {
+    const { data, error } = await supabase.from("lessons").select("*");
+    if (error) throw new Error(`Failed to load lessons: ${error.message}`);
+    rows = (data ?? []) as LessonRow[];
+  }
+
   const profiles = await loadProfiles(
     supabase,
     rows.map((r) => r.user_id)

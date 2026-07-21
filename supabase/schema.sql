@@ -342,6 +342,23 @@ create policy "lessons_update_own" on public.lessons
 create policy "lessons_delete_own" on public.lessons
   for delete using (auth.uid() = user_id);
 
+-- Shared feed helper (callable from the app)
+create or replace function public.list_lessons()
+returns setof public.lessons
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select *
+  from public.lessons
+  where auth.uid() is not null
+  order by pinned desc, created_at desc;
+$$;
+
+revoke all on function public.list_lessons() from public;
+grant execute on function public.list_lessons() to authenticated;
+
 -- Backtests
 drop policy if exists "backtest_trades_select_own" on public.backtest_trades;
 drop policy if exists "backtest_trades_insert_own" on public.backtest_trades;
