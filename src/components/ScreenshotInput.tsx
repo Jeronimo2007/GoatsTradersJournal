@@ -64,7 +64,7 @@ export function ScreenshotInput({
             type="button"
             onClick={() => onChange(null)}
             className="absolute top-2 right-2 rounded-md bg-black/70 p-1.5 text-white hover:bg-black"
-            aria-label="Remove image"
+            aria-label="Quitar imagen"
           >
             <X className="h-4 w-4" />
           </button>
@@ -88,7 +88,7 @@ export function ScreenshotInput({
         >
           <ImagePlus className="h-6 w-6 text-muted" />
           <div className="text-sm text-muted">
-            Click, drag &amp; drop, or paste an image
+            Haz clic, arrastra o pega una imagen
           </div>
         </div>
       )}

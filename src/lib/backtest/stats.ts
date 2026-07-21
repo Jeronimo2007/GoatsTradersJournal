@@ -116,7 +116,7 @@ export function statsByDirection(
 ): BtGroupStat[] {
   return groupBy(
     trades,
-    (t) => (t.direction === "long" ? "Long" : "Short"),
+    (t) => (t.direction === "long" ? "Largo" : "Corto"),
     riskPerTrade
   ).sort((a, b) => b.totalRR - a.totalRR);
 }
@@ -127,7 +127,7 @@ export function statsBySetup(
 ): BtGroupStat[] {
   const map = new Map<string, BacktestTrade[]>();
   for (const t of trades) {
-    const setups = t.setups.length ? t.setups : ["Untagged"];
+    const setups = t.setups.length ? t.setups : ["Sin etiqueta"];
     for (const s of setups) {
       if (!map.has(s)) map.set(s, []);
       map.get(s)!.push(t);
@@ -146,7 +146,7 @@ export function statsByAsset(
 ): BtGroupStat[] {
   return groupBy(
     trades,
-    (t) => (t.asset.trim() ? t.asset.trim() : "Unspecified"),
+    (t) => (t.asset.trim() ? t.asset.trim() : "Sin especificar"),
     riskPerTrade
   ).sort((a, b) => b.totalRR - a.totalRR);
 }
@@ -207,7 +207,7 @@ export interface RrPoint {
 export function rrCurve(trades: BacktestTrade[]): RrPoint[] {
   const sorted = [...trades].sort((a, b) => a.id - b.id);
   let cum = 0;
-  const points: RrPoint[] = [{ index: 0, label: "Start", cumRR: 0, rr: 0 }];
+  const points: RrPoint[] = [{ index: 0, label: "Inicio", cumRR: 0, rr: 0 }];
   sorted.forEach((t, i) => {
     cum += t.rr;
     points.push({ index: i + 1, label: `#${i + 1}`, cumRR: cum, rr: t.rr });
@@ -225,7 +225,7 @@ export interface Insight {
 const MIN_SAMPLE = 4; // don't draw conclusions from tiny samples
 
 function fmtWr(g: { winRate: number; wins: number; losses: number }): string {
-  return `${g.winRate.toFixed(0)}% WR (${g.wins}W/${g.losses}L)`;
+  return `${g.winRate.toFixed(0)}% TG (${g.wins}G/${g.losses}P)`;
 }
 
 /**
@@ -240,7 +240,7 @@ export function buildInsights(
   if (trades.length < MIN_SAMPLE) {
     insights.push({
       tone: "info",
-      text: `Log at least ${MIN_SAMPLE} trades to unlock automatic insights. You have ${trades.length}.`,
+      text: `Registra al menos ${MIN_SAMPLE} operaciones para desbloquear insights automáticos. Tienes ${trades.length}.`,
     });
     return insights;
   }
@@ -248,7 +248,8 @@ export function buildInsights(
   // Session x Direction combos — the classic "skip this" finder.
   const combos = groupBy(
     trades,
-    (t) => `${t.direction === "long" ? "Long" : "Short"} in ${t.session}`,
+    (t) =>
+      `${t.direction === "long" ? "Largo" : "Corto"} en ${t.session === "Tokyo" ? "Tokio" : t.session}`,
     riskPerTrade
   );
   for (const c of combos) {
@@ -257,40 +258,40 @@ export function buildInsights(
     if (c.winRate <= 35) {
       insights.push({
         tone: "bad",
-        text: `Your ${c.key} trades have just ${fmtWr(c)} and ${c.totalRR >= 0 ? "+" : ""}${c.totalRR.toFixed(1)}R total. Consider skipping this combination.`,
+        text: `Tus operaciones de ${c.key} tienen solo ${fmtWr(c)} y ${c.totalRR >= 0 ? "+" : ""}${c.totalRR.toFixed(1)}R en total. Considera saltarte esta combinación.`,
       });
     } else if (c.winRate >= 65 && c.totalRR > 0) {
       insights.push({
         tone: "good",
-        text: `${c.key} is a strength — ${fmtWr(c)} and +${c.totalRR.toFixed(1)}R total. Lean into it.`,
+        text: `${c.key} es una fortaleza — ${fmtWr(c)} y +${c.totalRR.toFixed(1)}R en total. Apóyate en ella.`,
       });
     }
   }
 
   // Best setup by average R.
   const setups = statsBySetup(trades, riskPerTrade).filter(
-    (s) => s.count >= MIN_SAMPLE && s.key !== "Untagged"
+    (s) => s.count >= MIN_SAMPLE && s.key !== "Sin etiqueta"
   );
   if (setups.length) {
     const bestByRR = [...setups].sort((a, b) => b.avgRR - a.avgRR)[0];
     if (bestByRR.avgRR > 0) {
       insights.push({
         tone: "good",
-        text: `Your "${bestByRR.key}" setup has your highest average R:R at ${bestByRR.avgRR.toFixed(2)}R over ${bestByRR.count} trades.`,
+        text: `Tu setup "${bestByRR.key}" tiene el R:R promedio más alto: ${bestByRR.avgRR.toFixed(2)}R en ${bestByRR.count} operaciones.`,
       });
     }
     const bestByWr = [...setups].sort((a, b) => b.winRate - a.winRate)[0];
     if (bestByWr.key !== bestByRR.key && bestByWr.winRate >= 60) {
       insights.push({
         tone: "good",
-        text: `"${bestByWr.key}" is your most reliable setup at ${bestByWr.winRate.toFixed(0)}% win rate.`,
+        text: `"${bestByWr.key}" es tu setup más fiable con ${bestByWr.winRate.toFixed(0)}% de tasa de ganancia.`,
       });
     }
     const worst = [...setups].sort((a, b) => a.totalRR - b.totalRR)[0];
     if (worst.totalRR < 0) {
       insights.push({
         tone: "bad",
-        text: `"${worst.key}" is bleeding R (${worst.totalRR.toFixed(1)}R across ${worst.count} trades). Refine the criteria or drop it.`,
+        text: `"${worst.key}" está drenando R (${worst.totalRR.toFixed(1)}R en ${worst.count} operaciones). Refina los criterios o descártalo.`,
       });
     }
   }
@@ -304,7 +305,7 @@ export function buildInsights(
     if (top.avgRR - bottom.avgRR >= 0.5) {
       insights.push({
         tone: "info",
-        text: `${top.key} outperforms ${bottom.key}: ${top.avgRR.toFixed(2)}R vs ${bottom.avgRR.toFixed(2)}R per trade. Prioritise the ${top.key} session.`,
+        text: `${top.key} supera a ${bottom.key}: ${top.avgRR.toFixed(2)}R vs ${bottom.avgRR.toFixed(2)}R por operación. Prioriza la sesión ${top.key}.`,
       });
     }
   }
@@ -318,7 +319,7 @@ export function buildInsights(
     if (top.winRate - bottom.winRate >= 20) {
       insights.push({
         tone: "info",
-        text: `You are far stronger on ${top.key.toLowerCase()}s (${top.winRate.toFixed(0)}% WR) than ${bottom.key.toLowerCase()}s (${bottom.winRate.toFixed(0)}% WR).`,
+        text: `Eres mucho más fuerte en ${top.key.toLowerCase()}s (${top.winRate.toFixed(0)}% TG) que en ${bottom.key.toLowerCase()}s (${bottom.winRate.toFixed(0)}% TG).`,
       });
     }
   }
@@ -326,7 +327,7 @@ export function buildInsights(
   if (insights.length === 0) {
     insights.push({
       tone: "info",
-      text: "No strong patterns yet — your performance is fairly balanced across sessions, directions and setups. Keep logging.",
+      text: "Aún no hay patrones claros — tu rendimiento está bastante equilibrado entre sesiones, direcciones y setups. Sigue registrando.",
     });
   }
 

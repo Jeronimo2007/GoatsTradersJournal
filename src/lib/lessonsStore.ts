@@ -19,6 +19,7 @@ export function extractTags(text: string): string[] {
 
 interface LessonRow {
   id: number;
+  user_id: string;
   text: string;
   tags: string[] | null;
   pinned: boolean;
@@ -26,7 +27,25 @@ interface LessonRow {
   updated_at: string;
 }
 
-function rowToLesson(r: LessonRow): Lesson {
+interface ProfileRow {
+  id: string;
+  display_name: string | null;
+  email: string | null;
+}
+
+function authorLabel(profile: ProfileRow | undefined): string {
+  const name = profile?.display_name?.trim();
+  if (name) return name;
+  const email = profile?.email?.trim();
+  if (email) return email.split("@")[0] || "Trader";
+  return "Trader";
+}
+
+function rowToLesson(
+  r: LessonRow,
+  currentUserId: string,
+  profiles: Map<string, ProfileRow>
+): Lesson {
   return {
     id: Number(r.id),
     text: r.text ?? "",
@@ -34,6 +53,9 @@ function rowToLesson(r: LessonRow): Lesson {
     pinned: !!r.pinned,
     createdAt: r.created_at ?? "",
     updatedAt: r.updated_at ?? "",
+    authorId: r.user_id,
+    authorName: authorLabel(profiles.get(r.user_id)),
+    isMine: r.user_id === currentUserId,
   };
 }
 
@@ -48,14 +70,37 @@ function sortLessons(lessons: Lesson[]): Lesson[] {
   });
 }
 
+async function loadProfiles(
+  supabase: Awaited<ReturnType<typeof requireUser>>["supabase"],
+  userIds: string[]
+): Promise<Map<string, ProfileRow>> {
+  const map = new Map<string, ProfileRow>();
+  const unique = [...new Set(userIds.filter(Boolean))];
+  if (unique.length === 0) return map;
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, display_name, email")
+    .in("id", unique);
+  if (error) throw new Error(`Failed to load authors: ${error.message}`);
+
+  for (const row of (data ?? []) as ProfileRow[]) {
+    map.set(row.id, row);
+  }
+  return map;
+}
+
 export async function getLessons(): Promise<Lesson[]> {
   const { supabase, user } = await requireUser();
-  const { data, error } = await supabase
-    .from("lessons")
-    .select("*")
-    .eq("user_id", user.id);
+  const { data, error } = await supabase.from("lessons").select("*");
   if (error) throw new Error(`Failed to load lessons: ${error.message}`);
-  return sortLessons(((data ?? []) as LessonRow[]).map(rowToLesson));
+
+  const rows = (data ?? []) as LessonRow[];
+  const profiles = await loadProfiles(
+    supabase,
+    rows.map((r) => r.user_id)
+  );
+  return sortLessons(rows.map((r) => rowToLesson(r, user.id, profiles)));
 }
 
 export async function getLesson(id: number): Promise<Lesson | null> {
@@ -64,10 +109,13 @@ export async function getLesson(id: number): Promise<Lesson | null> {
     .from("lessons")
     .select("*")
     .eq("id", id)
-    .eq("user_id", user.id)
     .maybeSingle();
   if (error) throw new Error(`Failed to load lesson: ${error.message}`);
-  return data ? rowToLesson(data as LessonRow) : null;
+  if (!data) return null;
+
+  const row = data as LessonRow;
+  const profiles = await loadProfiles(supabase, [row.user_id]);
+  return rowToLesson(row, user.id, profiles);
 }
 
 export async function createLesson(input: LessonInput): Promise<Lesson> {
@@ -89,7 +137,10 @@ export async function createLesson(input: LessonInput): Promise<Lesson> {
   if (error || !data) {
     throw new Error(`Failed to create lesson: ${error?.message ?? "unknown"}`);
   }
-  return rowToLesson(data as LessonRow);
+
+  const row = data as LessonRow;
+  const profiles = await loadProfiles(supabase, [user.id]);
+  return rowToLesson(row, user.id, profiles);
 }
 
 export async function updateLesson(
@@ -98,7 +149,7 @@ export async function updateLesson(
 ): Promise<Lesson | null> {
   const { supabase, user } = await requireUser();
   const existing = await getLesson(id);
-  if (!existing) return null;
+  if (!existing || !existing.isMine) return null;
 
   const text = input.text !== undefined ? cleanText(input.text) : existing.text;
   const { data, error } = await supabase
@@ -116,13 +167,16 @@ export async function updateLesson(
     .single();
 
   if (error) throw new Error(`Failed to update lesson: ${error.message}`);
-  return data ? rowToLesson(data as LessonRow) : null;
+  if (!data) return null;
+
+  const profiles = await loadProfiles(supabase, [user.id]);
+  return rowToLesson(data as LessonRow, user.id, profiles);
 }
 
 export async function deleteLesson(id: number): Promise<boolean> {
   const { supabase, user } = await requireUser();
   const existing = await getLesson(id);
-  if (!existing) return false;
+  if (!existing || !existing.isMine) return false;
   const { error } = await supabase
     .from("lessons")
     .delete()

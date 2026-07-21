@@ -14,7 +14,8 @@
 --                 ├── trades (N) ── trade_documents (0..1)
 --                 └── backtest_trades (N)
 --
---   lessons are per USER (shared across that user's accounts)
+--   lessons are a shared feed for ALL signed-in users
+--   (only the author can edit / delete / pin their own lessons)
 --   Storage paths: {user_id}/{account_id}/{filename}
 
 -- ---------------------------------------------------------------------------
@@ -136,7 +137,7 @@ create index if not exists trade_documents_user_id_idx on public.trade_documents
 create index if not exists trade_documents_account_id_idx on public.trade_documents (account_id);
 
 -- ---------------------------------------------------------------------------
--- Lessons — per USER (shared across all of that user's accounts)
+-- Lessons — shared feed for all signed-in users
 -- ---------------------------------------------------------------------------
 
 create table if not exists public.lessons (
@@ -254,9 +255,10 @@ alter table public.backtest_trades enable row level security;
 
 -- Profiles
 drop policy if exists "profiles_select_own" on public.profiles;
+drop policy if exists "profiles_select_authenticated" on public.profiles;
 drop policy if exists "profiles_update_own" on public.profiles;
-create policy "profiles_select_own" on public.profiles
-  for select using (auth.uid() = id);
+create policy "profiles_select_authenticated" on public.profiles
+  for select using (auth.uid() is not null);
 create policy "profiles_update_own" on public.profiles
   for update using (auth.uid() = id)
   with check (auth.uid() = id);
@@ -324,13 +326,14 @@ create policy "trade_documents_update_own" on public.trade_documents
 create policy "trade_documents_delete_own" on public.trade_documents
   for delete using (auth.uid() = user_id);
 
--- Lessons (per user, all accounts)
+-- Lessons (shared feed; write still owner-only)
 drop policy if exists "lessons_select_own" on public.lessons;
+drop policy if exists "lessons_select_authenticated" on public.lessons;
 drop policy if exists "lessons_insert_own" on public.lessons;
 drop policy if exists "lessons_update_own" on public.lessons;
 drop policy if exists "lessons_delete_own" on public.lessons;
-create policy "lessons_select_own" on public.lessons
-  for select using (auth.uid() = user_id);
+create policy "lessons_select_authenticated" on public.lessons
+  for select using (auth.uid() is not null);
 create policy "lessons_insert_own" on public.lessons
   for insert with check (auth.uid() = user_id);
 create policy "lessons_update_own" on public.lessons

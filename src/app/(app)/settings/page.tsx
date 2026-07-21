@@ -212,7 +212,7 @@ function AccountsManager() {
 
   return (
     <div className="card p-5">
-        <SectionTitle desc="Mantén las cuentas financiadas separadas y aisladas. Al cambiar, se modifican las operaciones y estadísticas que ves. Las lecciones se comparten entre todas las cuentas.">
+        <SectionTitle desc="Mantén las cuentas financiadas separadas y aisladas. Al cambiar, se modifican las operaciones y estadísticas que ves. Las lecciones son un feed compartido entre todos los usuarios.">
           Cuentas
       </SectionTitle>
 

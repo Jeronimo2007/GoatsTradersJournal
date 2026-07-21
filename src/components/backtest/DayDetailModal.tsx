@@ -34,7 +34,7 @@ const OUTCOME_BADGE: Record<
 function prettyDate(key: string): string {
   const d = new Date(`${key}T12:00:00`);
   if (Number.isNaN(d.getTime())) return key;
-  return d.toLocaleDateString(undefined, {
+  return d.toLocaleDateString("es", {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -311,7 +311,7 @@ export function DayDetailModal({
                       )}
                     >
                       <DirIcon className="h-3 w-3" />
-                      {t.direction.toUpperCase()}
+                      {t.direction === "long" ? "LARGO" : "CORTO"}
                     </span>
                     {t.asset && (
                       <span className="text-xs font-medium">{t.asset}</span>

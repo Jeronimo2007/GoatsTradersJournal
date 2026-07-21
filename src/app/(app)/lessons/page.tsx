@@ -75,7 +75,7 @@ export default function LessonsPage() {
       <div>
         <h1 className="text-xl font-semibold">Lecciones</h1>
         <p className="text-sm text-muted">
-          Anota aprendizajes y conclusiones — compartidos entre todas las cuentas. Añade{" "}
+          Feed compartido — todos los usuarios ven las lecciones publicadas. Añade{" "}
           <span className="text-accent">#etiquetas</span> para agruparlas.
         </p>
       </div>
@@ -108,7 +108,7 @@ export default function LessonsPage() {
           description={
             activeTag
               ? "Intenta con una etiqueta diferente o limpia el filtro."
-              : "Publica tu primer aprendizaje arriba — un error a evitar, una configuración que funcionó, o una regla para recordar."
+              : "Publica tu primer aprendizaje arriba — todos los usuarios del journal lo verán."
           }
         />
       ) : (
@@ -269,22 +269,24 @@ function LessonCard({
         <Avatar />
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="font-semibold">Me</span>
+            <div className="flex items-center gap-2 text-sm min-w-0">
+              <span className="font-semibold truncate">
+                {lesson.isMine ? "Tú" : lesson.authorName}
+              </span>
               <span
-                className="text-muted"
+                className="text-muted shrink-0"
                 title={formatDateTime(lesson.createdAt)}
               >
                 · {formatRelativeTime(lesson.createdAt)}
               </span>
               {lesson.pinned && (
-                  <span className="inline-flex items-center gap-1 text-xs text-accent">
+                  <span className="inline-flex items-center gap-1 text-xs text-accent shrink-0">
                     <Pin className="h-3 w-3" /> Fijado
                   </span>
               )}
             </div>
-            {!editing && (
-              <div className="flex items-center gap-1 text-muted">
+            {lesson.isMine && !editing && (
+              <div className="flex items-center gap-1 text-muted shrink-0">
                 <IconButton title="Editar" onClick={() => setEditing(true)}>
                   <Pencil className="h-4 w-4" />
                 </IconButton>

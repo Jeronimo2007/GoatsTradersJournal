@@ -60,7 +60,7 @@ auth.users (1)
               ├── trades (N) → trade_documents (0..1)
               └── backtest_trades (N)
 
-lessons → per user (shared across that user's accounts)
+lessons → shared feed for all signed-in users (author-only edit/delete)
 ```
 
 | Table | Scope | Purpose |
@@ -70,7 +70,7 @@ lessons → per user (shared across that user's accounts)
 | `trades` | Per account | Live journal rows |
 | `trade_documents` | Per trade | TipTap HTML + PDF path |
 | `backtest_trades` | Per account | Replay / backtest logs |
-| `lessons` | Per user | Lessons shared across accounts |
+| `lessons` | Shared | Lessons feed visible to all signed-in users |
 
 Composite FKs `(account_id, user_id) → accounts(id, user_id)` make it impossible for a trade to point at another user's account. Deleting an account cascades its trades, docs, and backtests.
 

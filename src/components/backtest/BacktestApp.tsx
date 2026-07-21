@@ -46,9 +46,9 @@ const TABS: { id: Tab; label: string; icon: typeof History }[] = [
 ];
 
 const OUTCOME_BADGE: Record<BtOutcome, { label: string; cls: string; icon: typeof Trophy }> = {
-  win: { label: "WIN", cls: "bg-profit/15 text-profit", icon: Trophy },
-  loss: { label: "LOSS", cls: "bg-loss/15 text-loss", icon: Target },
-  be: { label: "BE", cls: "bg-muted/15 text-muted", icon: Minus },
+  win: { label: "GANADA", cls: "bg-profit/15 text-profit", icon: Trophy },
+  loss: { label: "PERDIDA", cls: "bg-loss/15 text-loss", icon: Target },
+  be: { label: "PE", cls: "bg-muted/15 text-muted", icon: Minus },
 };
 
 function todayISODate(): string {
@@ -367,7 +367,7 @@ export function BacktestApp() {
                             )}
                           >
                             <DirIcon className="h-3 w-3" />
-                            {t.direction.toUpperCase()}
+                            {t.direction === "long" ? "LARGO" : "CORTO"}
                           </span>
                           {t.asset && (
                             <span className="text-xs font-medium">

@@ -70,7 +70,7 @@ export interface AccountsState {
   activeId: string;
 }
 
-/** A short lesson / learning, posted journal-style (like a tweet). */
+/** A short lesson / learning, posted journal-style (like a tweet). Shared with all users. */
 export interface Lesson {
   id: number;
   text: string;
@@ -78,6 +78,9 @@ export interface Lesson {
   pinned: boolean;
   createdAt: string;
   updatedAt: string;
+  authorId: string;
+  authorName: string;
+  isMine: boolean;
 }
 
 /** Payload used to create or update a lesson (no server-managed fields). */

@@ -93,7 +93,7 @@ export function BacktestCalendar({
     } else setMonth((m) => m + 1);
   };
 
-  const monthName = new Date(year, month, 1).toLocaleDateString(undefined, {
+  const monthName = new Date(year, month, 1).toLocaleDateString("es", {
     month: "long",
     year: "numeric",
   });

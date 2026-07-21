@@ -57,7 +57,7 @@ function GroupCard({
     <div className={clsx("card p-4", border)}>
       <div className="flex items-center justify-between">
         <div className="font-semibold">{stat.key}</div>
-        <div className="text-xs text-muted">{stat.count} trades</div>
+        <div className="text-xs text-muted">{stat.count} operaciones</div>
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2 text-center">
         <div>
@@ -86,7 +86,7 @@ function GroupCard({
         </div>
       </div>
       <div className="mt-2 text-center text-xs text-muted">
-        Net{" "}
+        Neto{" "}
         <span
           className={clsx(
             "font-semibold tabular-nums",
@@ -99,8 +99,8 @@ function GroupCard({
         >
           {money(stat.netPnl)}
         </span>{" "}
-        · {stat.wins}W / {stat.losses}L
-        {stat.breakevens ? ` / ${stat.breakevens}BE` : ""}
+        · {stat.wins}G / {stat.losses}P
+        {stat.breakevens ? ` / ${stat.breakevens}PE` : ""}
       </div>
     </div>
   );
@@ -147,8 +147,8 @@ export function BacktestAnalytics({
   const insights = useMemo(() => buildInsights(trades, risk), [trades, risk]);
   const curve = useMemo(() => rrCurve(trades), [trades]);
 
-  const long = byDirection.find((d) => d.key === "Long");
-  const short = byDirection.find((d) => d.key === "Short");
+  const long = byDirection.find((d) => d.key === "Largo");
+  const short = byDirection.find((d) => d.key === "Corto");
 
   return (
     <div className="space-y-6">

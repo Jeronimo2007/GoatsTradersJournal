@@ -209,7 +209,7 @@ export function BacktestForm({
     e.preventDefault();
     setError(null);
     if (!autoMode && numOrNull(form.rr) === null) {
-      setError("Enter the realized R:R (e.g. -1, 0, 2.5) or a Net P/L.");
+      setError("Introduce el R:R realizado (p. ej. -1, 0, 2.5) o un P/L neto.");
       return;
     }
     setSaving(true);
@@ -235,7 +235,7 @@ export function BacktestForm({
       onSaved(saved);
     } catch (err) {
       console.error(err);
-      setError("Failed to save. Please try again.");
+      setError("No se pudo guardar. Inténtalo de nuevo.");
       setSaving(false);
     }
   };
@@ -263,7 +263,7 @@ export function BacktestForm({
         {/* Date */}
         {!hideDate && (
           <div>
-            <label className="field-label">Date</label>
+            <label className="field-label">Fecha</label>
             <input
               type="date"
               className="field-input"
@@ -276,7 +276,7 @@ export function BacktestForm({
         {/* Session */}
         {!hideSession && (
           <div>
-            <label className="field-label">Session</label>
+            <label className="field-label">Sesión</label>
             <div className="grid grid-cols-2 gap-2">
               {BT_SESSIONS.map((s) => (
                 <button
@@ -290,7 +290,7 @@ export function BacktestForm({
                       : "border-border text-muted hover:bg-surface-2"
                   )}
                 >
-                  {s}
+                  {s === "Tokyo" ? "Tokio" : s}
                 </button>
               ))}
             </div>
@@ -299,7 +299,7 @@ export function BacktestForm({
 
         {/* Direction */}
         <div>
-          <label className="field-label">Direction</label>
+          <label className="field-label">Dirección</label>
           <div className="grid grid-cols-2 gap-2">
             {(["long", "short"] as BtDirection[]).map((d) => {
               const Icon = d === "long" ? TrendingUp : TrendingDown;
@@ -309,7 +309,7 @@ export function BacktestForm({
                   type="button"
                   onClick={() => set("direction", d)}
                   className={clsx(
-                    "flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-semibold capitalize transition-colors",
+                    "flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors",
                     form.direction === d
                       ? d === "long"
                         ? "border-profit bg-profit/15 text-profit"
@@ -318,7 +318,7 @@ export function BacktestForm({
                   )}
                 >
                   <Icon className="h-4 w-4" />
-                  {d}
+                  {d === "long" ? "Largo" : "Corto"}
                 </button>
               );
             })}
@@ -329,10 +329,10 @@ export function BacktestForm({
       {/* Outcome */}
       <div>
         <label className="field-label">
-          Outcome
+          Resultado
           {autoMode && (
             <span className="ml-1 normal-case text-muted">
-              — auto from P/L
+              — automático desde P/L
             </span>
           )}
         </label>
@@ -367,9 +367,9 @@ export function BacktestForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="field-label">
-            Realized R:R
+            R:R realizado
             {autoMode && (
-              <span className="ml-1 normal-case text-muted">— auto</span>
+              <span className="ml-1 normal-case text-muted">— automático</span>
             )}
           </label>
           <input
@@ -387,8 +387,8 @@ export function BacktestForm({
         </div>
         <div>
           <label className="field-label">
-            Net P/L ($){" "}
-            <span className="normal-case text-muted">— sets R:R</span>
+            P/L neto ($){" "}
+            <span className="normal-case text-muted">— define el R:R</span>
           </label>
           <input
             type="number"
@@ -406,8 +406,8 @@ export function BacktestForm({
         {!hideExpectedTP && (
           <div>
             <label className="field-label">
-              Expected TP{" "}
-              <span className="normal-case text-muted">— target R:R</span>
+              TP esperado{" "}
+              <span className="normal-case text-muted">— R:R objetivo</span>
             </label>
             <input
               type="number"
@@ -421,8 +421,8 @@ export function BacktestForm({
         )}
         <div>
           <label className="field-label">
-            Risk Used ($){" "}
-            <span className="normal-case text-muted">— optional</span>
+            Riesgo usado ($){" "}
+            <span className="normal-case text-muted">— opcional</span>
           </label>
           <input
             type="number"
@@ -435,8 +435,8 @@ export function BacktestForm({
         </div>
         <div>
           <label className="field-label">
-            Contracts / Lots{" "}
-            <span className="normal-case text-muted">— optional</span>
+            Contratos / lotes{" "}
+            <span className="normal-case text-muted">— opcional</span>
           </label>
           <input
             type="number"
@@ -452,7 +452,7 @@ export function BacktestForm({
       <div className="flex flex-wrap gap-3 text-sm">
         <div className="rounded-lg bg-surface-2 px-3 py-2">
           <span className="text-muted">
-            {autoMode ? "R:R " : "Net P/L "}
+            {autoMode ? "R:R " : "P/L neto "}
           </span>
           {autoMode ? (
             <span
@@ -484,15 +484,15 @@ export function BacktestForm({
           )}
           <span className="ml-1 text-xs text-muted">
             {autoMode
-              ? `(from ${money(typedPnl!)} ÷ ${money(effectiveRisk)} risk)`
-              : `(from ${effectiveRisk}$ risk × R)`}
+              ? `(desde ${money(typedPnl!)} ÷ ${money(effectiveRisk)} de riesgo)`
+              : `(desde ${effectiveRisk}$ de riesgo × R)`}
           </span>
         </div>
       </div>
 
       {/* Setups */}
       <div>
-        <label className="field-label">Setup / Strategy</label>
+        <label className="field-label">Setup / estrategia</label>
         <div className="flex flex-wrap gap-2">
           {BT_SETUP_PRESETS.map((s) => (
             <button
@@ -523,7 +523,7 @@ export function BacktestForm({
         <div className="mt-2 flex gap-2">
           <input
             className="field-input"
-            placeholder="Add custom setup…"
+            placeholder="Añadir setup personalizado…"
             value={customSetup}
             onChange={(e) => setCustomSetup(e.target.value)}
             onKeyDown={(e) => {
@@ -534,7 +534,7 @@ export function BacktestForm({
             }}
           />
           <button type="button" className="btn btn-ghost" onClick={addCustomSetup}>
-            Add
+            Añadir
           </button>
         </div>
       </div>
@@ -542,7 +542,7 @@ export function BacktestForm({
       {/* Asset (optional quick tag) */}
       <div>
         <label className="field-label">
-          Asset <span className="normal-case text-muted">— optional</span>
+          Activo <span className="normal-case text-muted">— opcional</span>
         </label>
         <input
           list="bt-asset-presets"
@@ -561,15 +561,15 @@ export function BacktestForm({
       {/* Screenshot + Notes */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ScreenshotInput
-          label="Screenshot"
+          label="Captura de pantalla"
           value={screenshot}
           onChange={setScreenshot}
         />
         <div>
-          <label className="field-label">Notes / Mistakes</label>
+          <label className="field-label">Notas / errores</label>
           <textarea
             className="field-textarea min-h-[9.5rem]"
-            placeholder="Mistakes made, general thoughts, what to do differently…"
+            placeholder="Errores cometidos, ideas generales, qué harías diferente…"
             value={form.notes}
             onChange={(e) => set("notes", e.target.value)}
           />
@@ -579,12 +579,16 @@ export function BacktestForm({
       <div className="flex items-center justify-end gap-3">
         {onCancel && (
           <button type="button" className="btn btn-ghost" onClick={onCancel}>
-            Cancel
+            Cancelar
           </button>
         )}
         <button type="submit" className="btn btn-primary" disabled={saving}>
           {trade ? <Save className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
-          {saving ? "Saving…" : trade ? "Save Changes" : "Log Trade"}
+          {saving
+            ? "Guardando…"
+            : trade
+              ? "Guardar cambios"
+              : "Registrar operación"}
         </button>
       </div>
     </form>

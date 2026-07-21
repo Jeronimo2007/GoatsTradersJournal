@@ -36,6 +36,7 @@ export default function RegisterPage() {
         email: email.trim(),
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/login`,
           data: {
             display_name: displayName.trim() || undefined,
           },
